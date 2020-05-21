@@ -32,14 +32,45 @@ package com.raywenderlich.android.watchlist
 
 import android.os.Bundle
 import android.view.*
+import android.widget.Toast
 import androidx.fragment.app.Fragment
+import com.airbnb.mvrx.*
 import kotlinx.android.synthetic.main.fragment_all_movies.*
 
-class AllMoviesFragment : Fragment() {
+class AllMoviesFragment : BaseMvRxFragment() {
 
   private lateinit var movieAdapter: MovieAdapter
 
-  // add ViewModel declaration here
+
+    // add ViewModel declaration here
+
+    private val watchlistViewModel: WatchlistViewModel by activityViewModel()
+
+    override fun invalidate() {
+        withState(watchlistViewModel) {state ->
+            when (state.movies) {
+
+                is Loading -> {
+                    progress_bar.visibility = View.VISIBLE
+                    all_movies_recyclerview.visibility = View.GONE
+                }
+
+                is Success -> {
+                    progress_bar.visibility = View.GONE
+                    all_movies_recyclerview.visibility = View.VISIBLE
+                    movieAdapter.setMovies(state.movies.invoke())
+                }
+                // 3
+                is Fail -> {
+                    Toast.makeText(
+                            requireContext(),
+                            "Failed to load all movies",
+                            Toast.LENGTH_SHORT
+                    ).show()
+                }
+            }
+        }
+    }
 
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
