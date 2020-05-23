@@ -117,5 +117,14 @@ class WatchlistRepository {
   }
 
   // add method to remove a movie from watchlist
+    fun removeFromWatchlist(movieId: Long): Observable<MovieModel> {
+      return Observable.fromCallable {
+          val movie = movies.first {
+              movie -> movie.id == movieId
+          }
+
+          movie.copy(isWatchlisted = false)
+      }
+  }
 
 }

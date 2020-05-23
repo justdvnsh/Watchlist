@@ -1,11 +1,14 @@
 package com.raywenderlich.android.watchlist
 
+import androidx.lifecycle.MutableLiveData
 import com.airbnb.mvrx.*
 
 class WatchlistViewModel(
         initialState: WatchlistState,
         private val watchlistRepository: WatchlistRepository
 ) : BaseMvRxViewModel<WatchlistState>(initialState, debugMode = true) {
+
+    val errorMessage = MutableLiveData<String>()
 
     init {
         setState {
@@ -16,6 +19,60 @@ class WatchlistViewModel(
             copy(movies = it)
         }
     }
+
+    fun watchlistMovie(movieId: Long) {
+        withState {state ->
+            if (state.movies is Success) {
+                val index = state.movies.invoke().indexOfFirst {
+                    it.id == movieId
+                }
+
+                watchlistRepository.watchlistMovies(movieId)
+                        .execute {
+                            if (it is Success) {
+                                copy(movies = Success(
+                                        state.movies.invoke().toMutableList().apply {
+                                            set(index, it.invoke())
+                                        }
+                                ))
+                            } else if (it is Fail) {
+                                errorMessage.postValue("Failed to add to watchloist")
+                                copy()
+                            } else {
+                                copy()
+                            }
+                        }
+            }
+        }
+    }
+
+    fun removeMovieFromWatchlist(movieId: Long) {
+        withState { state ->
+            if (state.movies is Success) {
+                val index = state.movies.invoke().indexOfFirst {
+                    it.id == movieId
+                }
+                watchlistRepository.removeFromWatchlist(movieId)
+                        .execute {
+                            if (it is Success) {
+                                copy(
+                                        movies = Success(
+                                                state.movies.invoke().toMutableList().apply {
+                                                    set(index, it.invoke())
+                                                }
+                                        )
+                                )
+                            } else if (it is Fail) {
+                                errorMessage.postValue("Failed to remove movie from watchlist")
+                                copy()
+                            } else {
+                                copy()
+                            }
+                        }
+            }
+        }
+    }
+
 
     companion object: MvRxViewModelFactory<WatchlistViewModel, WatchlistState> {
 

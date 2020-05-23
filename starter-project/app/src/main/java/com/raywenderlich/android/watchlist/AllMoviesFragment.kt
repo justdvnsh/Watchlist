@@ -91,10 +91,12 @@ class AllMoviesFragment : BaseMvRxFragment() {
     movieAdapter = MovieAdapter(object : MovieAdapter.WatchlistListener {
       override fun addToWatchlist(movieId: Long) {
         // call ViewModel to add movie to watchlist
+          watchlistViewModel.watchlistMovie(movieId)
       }
 
       override fun removeFromWatchlist(movieId: Long) {
         // call ViewModel to remove movie from watchlist
+          watchlistViewModel.removeMovieFromWatchlist(movieId)
       }
     })
     all_movies_recyclerview.adapter = movieAdapter
